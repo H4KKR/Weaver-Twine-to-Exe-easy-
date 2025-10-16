@@ -20,6 +20,7 @@ Open your command prompt (Press windows key, search "cmd", press enter) then typ
 `pip install PyQtWebEngine`
 
 `pip install PyInstaller`
+
 3. Run the python code:
 
 `python main.py`
