@@ -10,11 +10,18 @@ https://rerun878.itch.io/weaver
 1. Download the code included in this project.
 2. Download all the requirements by running the following:
 - Download Python online
+https://www.python.org/downloads/
+  
 - Install prerequisites:
+Open your command prompt (Press windows key, search "cmd", press enter) then type the following:
+
 `pip install PyQt5`
+
 `pip install PyQtWebEngine`
+
 `pip install PyInstaller`
-3. Run the python code/
+3. Run the python code:
+
 `python main.py`
 
 # Done! Get converting!!
