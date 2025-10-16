@@ -1,4 +1,4 @@
-# Weaver-Twine-to-Exe-easy-
+# Weaver - Twine to Exe
 Convert your Twine game to an exe, the easy way!
 
 # Get the exe!
