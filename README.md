@@ -25,6 +25,8 @@ Open your command prompt (Press windows key, search "cmd", press enter) then typ
 
 `pip install PyInstaller`
 
+`pip install tkfilebrowser`
+
 3. Run the python code:
 
 `python main.py`
