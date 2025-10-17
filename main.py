@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+import tkfilebrowser
+from tkinter import filedialog, messagebox, PhotoImage
 import os
 import sys
 import threading
@@ -102,12 +103,18 @@ window_title = {}
 class AppBuilder(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("HTML to EXE Builder")
+        self.title("Weaver: Twine to EXE")
         self.geometry("600x480")
         self.config(bg="#f0f0f0")
+
         
         self.html_file_path = ""
-        self.images_folder_path = ""
+
+
+        #self.images_folder_path = ""
+        self.media_folder_paths = []
+
+
         self.icon_file_path = ""
         self.output_dir_path = ""
         
@@ -117,6 +124,17 @@ class AppBuilder(tk.Tk):
         # Frame for Project Name
         name_frame = tk.Frame(self, bg="#f0f0f0", pady=10)
         name_frame.pack(fill="x", padx=20)
+
+
+        try:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            icon_path = "WEAVER_ICON.ico"
+            file_path = os.path.join(script_dir, icon_path)
+            self.iconbitmap(icon_path)
+        except:
+            print(f"icon file not found at {icon_path}")
+
+
         tk.Label(name_frame, text="Project Name:", bg="#f0f0f0").pack(side="left")
         self.name_entry = tk.Entry(name_frame, width=50)
         self.name_entry.insert(0, "MyWebApp") # Default name
@@ -133,7 +151,7 @@ class AppBuilder(tk.Tk):
         # Frame for Images folder selection
         images_frame = tk.Frame(self, bg="#f0f0f0", pady=10)
         images_frame.pack(fill="x", padx=20)
-        tk.Label(images_frame, text="Select Images Folder:", bg="#f0f0f0").pack(side="left")
+        tk.Label(images_frame, text="Select Media Folders:", bg="#f0f0f0").pack(side="left")
         self.images_entry = tk.Entry(images_frame, width=50)
         self.images_entry.pack(side="left", padx=5)
         tk.Button(images_frame, text="Browse", command=self.select_images_folder).pack(side="left")
@@ -164,7 +182,7 @@ class AppBuilder(tk.Tk):
         self.status_label.pack(pady=10)
 
     def select_html_file(self):
-        file_path = filedialog.askopenfilename(
+        file_path = tkfilebrowser.askopenfilename(
             title="Select HTML File",
             filetypes=(("HTML files", "*.html"), ("All files", "*.*"))
         )
@@ -174,16 +192,27 @@ class AppBuilder(tk.Tk):
             self.html_entry.insert(0, file_path)
             self.status_label.config(text=f"Status: HTML file selected: {os.path.basename(file_path)}")
 
+
+    ######## change to MULTI DIRECTORY 
     def select_images_folder(self):
-        folder_path = filedialog.askdirectory(title="Select Images Folder")
-        if folder_path:
-            self.images_folder_path = folder_path
+        # folder_path = filedialog.askdirectory(title="Select Images Folder")
+        # if folder_path:
+        #     self.images_folder_path = folder_path
+        #     self.images_entry.delete(0, tk.END)
+        #     self.images_entry.insert(0, folder_path)
+        #     self.status_label.config(text=f"Status: Images folder selected: {os.path.basename(folder_path)}")
+        selected_dirs = tkfilebrowser.askopendirnames(title="Select media folders")
+        if selected_dirs:
+            self.media_folder_paths.extend(selected_dirs)
             self.images_entry.delete(0, tk.END)
-            self.images_entry.insert(0, folder_path)
-            self.status_label.config(text=f"Status: Images folder selected: {os.path.basename(folder_path)}")
+            self.images_entry.insert(0, ' + '.join(self.media_folder_paths))
+            self.status_label.config(text=f"Status: Images folder selected: {' + '.join(self.media_folder_paths)}")
+    ########
+
+
 
     def select_icon_file(self):
-        file_path = filedialog.askopenfilename(
+        file_path = tkfilebrowser.askopenfilename(
             title="Select Icon File",
             filetypes=(("Icon files", "*.ico"), ("All files", "*.*"))
         )
@@ -194,7 +223,7 @@ class AppBuilder(tk.Tk):
             self.status_label.config(text=f"Status: Icon file selected: {os.path.basename(file_path)}")
     
     def select_output_dir(self):
-        folder_path = filedialog.askdirectory(title="Select Output Directory")
+        folder_path = tkfilebrowser.askopendirname(title="Select Output Directory")
         if folder_path:
             self.output_dir_path = folder_path
             self.output_entry.delete(0, tk.END)
@@ -216,10 +245,15 @@ class AppBuilder(tk.Tk):
             self.status_label.config(text="Status: Failed")
             return
         
-        if not self.images_folder_path or not os.path.exists(self.images_folder_path):
+
+        ###### CHANGE TO MULTI-DIRECTORY SUPPORT!
+        
+        if not self.media_folder_paths or not any(os.path.exists(path) for path in self.media_folder_paths):
             messagebox.showerror("Error", "Please select a valid images folder.")
             self.status_label.config(text="Status: Failed")
             return
+        
+        ##### 
         
         if not self.output_dir_path or not os.path.exists(self.output_dir_path):
             messagebox.showerror("Error", "Please select a valid output directory.")
@@ -237,14 +271,35 @@ class AppBuilder(tk.Tk):
         # Get the path to the directory containing this script
         project_dir = os.path.dirname(os.path.abspath(__file__))
         
+
+
+
+
+
+
+
+
+        self.media_folder_paths = ["--add-data=" + i + os.pathsep + os.path.basename(i) for i in self.media_folder_paths]
+
+        ############# MAYBE os.path and basename can be removed?
+
+
         # Use os.path.join to create the full, absolute path for the temporary file
         temp_main_app_path = os.path.join(project_dir, temp_main_app_filename)
         temp_conf_path = os.path.join(project_dir, temp_conf_filename)
 
         html_file_basename = os.path.basename(self.html_file_path)
-        images_folder_basename = os.path.basename(self.images_folder_path)
+        #images_folder_basename = os.path.basename(self.images_folder_path)
         icon_file_basename = os.path.basename(self.icon_file_path)
         script_basename = os.path.basename(temp_main_app_filename)
+
+
+
+        #############
+
+
+
+
 
 
         # Write the main app code to a temporary file
@@ -272,13 +327,27 @@ class AppBuilder(tk.Tk):
             '--onefile',
             '--noconsole', # Added to make the final exe run without a console window
             '--collect-all', 'PyQt5.QtWebEngineWidgets',
-            f'--add-data={self.images_folder_path}{os.pathsep}{images_folder_basename}',
+            #f'--add-data={self.images_folder_path}{os.pathsep}{images_folder_basename}',
             f'--add-data={self.html_file_path}{os.pathsep}.',
             f'--add-data={temp_conf_path}{os.pathsep}.',
             f'--name={project_name}',
             f'--distpath={self.output_dir_path}',
-            temp_main_app_path, # The script to build must be the last argument
+            #temp_main_app_path, # The script to build must be the last argument
         ]
+
+
+
+
+
+        pyinstaller_args.extend(self.media_folder_paths)
+        pyinstaller_args.extend([temp_main_app_path])
+
+
+
+
+
+
+
         
         # Add icon flag if an icon file was selected
         if self.icon_file_path and os.path.exists(self.icon_file_path):
